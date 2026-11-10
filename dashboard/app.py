@@ -20,7 +20,7 @@ if st.button("Score Transaction", type="primary"):
     }
 
     try:
-        response = requests.post("http://localhost:8000/score", json=payload, timeout=5)
+       response = requests.post("https://fraudguard-api.onrender.com/score", json=payload, timeout=30) 
         response.raise_for_status()
         result = response.json()
 

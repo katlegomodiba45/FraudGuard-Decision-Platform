@@ -3,18 +3,15 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_health():
-    r = client.get("/health")
+def test_approve():
+    r = client.post("/score", json={"amount": 100, "country": "ZA", "velocity_1h": 1})
     assert r.status_code == 200
-    assert r.json()["status"] == "ok"
+    assert r.json()["decision"] == "APPROVE"
 
-def test_score_approve():
-    payload = {
-        "transaction_id": "TX-1", "user_id": "U-1", "amount": 100,
-        "merchant_category": "general", "country": "ZA", "device_type": "mobile",
-        "hour_of_day": 12, "is_weekend": 0, "velocity_1h": 1,
-        "velocity_24h": 2, "amount_vs_avg": 1.0
-    }
-    r = client.post("/score", json=payload)
-    assert r.status_code == 200
-    assert r.json()["decision"] in ["APPROVE", "REVIEW", "BLOCK"]
+def test_review():
+    r = client.post("/score", json={"amount": 6000, "country": "ZA", "velocity_1h": 1})
+    assert r.json()["decision"] == "REVIEW"
+
+def test_block():
+    r = client.post("/score", json={"amount": 15000, "country": "US", "velocity_1h": 12})
+    assert r.json()["decision"] == "BLOCK"
