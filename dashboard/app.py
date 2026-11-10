@@ -1,37 +1,35 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="FraudGuard Dashboard", page_icon="🛡️", layout="centered")
+st.set_page_config(page_title="FraudGuard", layout="centered")
+st.title("FraudGuard - Transaction Check")
+st.write("Check if a transaction looks fraudulent.")
 
-st.title("FraudGuard Dashboard")
-st.markdown("Test transactions live against the FraudGuard API")
+amount = st.number_input("Amount (R)", min_value=0.0, value=500.0)
+hour = st.slider("Hour of day", 0, 23, 12)
+velocity_1h = st.number_input("Transactions in last 1 hour", min_value=0, value=1)
+amount_vs_avg = st.number_input("Amount vs your average (e.g. 1.0 = normal, 5.0 = 5x bigger)", min_value=0.0, value=1.0)
 
-amount = st.slider("Amount (R)", min_value=10, max_value=15000, value=500, step=10)
-hour = st.slider("Hour of day", min_value=0, max_value=23, value=12)
-velocity = st.slider("Velocity (transactions in last 1h)", min_value=0, max_value=15, value=1)
-amount_vs_avg = st.slider("Amount vs User Average", min_value=0.5, max_value=8.0, value=1.0, step=0.1)
-
-if st.button("Score Transaction", type="primary"):
+if st.button("Check Transaction"):
     payload = {
         "amount": amount,
         "hour": hour,
-        "velocity_1h": velocity,
+        "velocity_1h": velocity_1h,
         "amount_vs_avg": amount_vs_avg
     }
-
     try:
-       response = requests.post("https://fraudguard-api.onrender.com/score", json=payload, timeout=30) 
+        response = requests.post("https://fraudguard-api.onrender.com/score", json=payload, timeout=30)
         response.raise_for_status()
         result = response.json()
-
-        st.success("Transaction scored successfully")
-        st.metric("Fraud Score", f"{result['fraud_score']:.4f}")
-        st.metric("Decision", result["decision"])
-        
-        with st.expander("Full Response"):
-            st.json(result)
-
-    except requests.exceptions.ConnectionError:
-        st.error("Cannot connect to the API. Make sure the FastAPI server is running on port 8000.")
+        score = result.get("fraud_score", 0)
+        decision = result.get("decision", "UNKNOWN")
+        st.metric("Fraud Score", f"{score:.2f}")
+        if decision == "BLOCK":
+            st.error(f"Decision: {decision} - Block this transaction")
+        elif decision == "REVIEW":
+            st.warning(f"Decision: {decision} - Send for manual review")
+        else:
+            st.success(f"Decision: {decision} - Allow transaction")
+        st.json(result)
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"API error: {e}")
