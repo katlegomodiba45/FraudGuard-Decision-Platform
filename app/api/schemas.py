@@ -5,6 +5,8 @@ class TransactionRequest(BaseModel):
     country: str = "ZA"
     velocity_1h: int = 1
     user_id: str = "user_1"
+    hour: int = 12
+    amount_vs_avg: float = 1.0
 
 class ScoreResponse(BaseModel):
     fraud_score: float

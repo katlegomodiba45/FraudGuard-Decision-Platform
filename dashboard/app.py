@@ -1,7 +1,8 @@
-import streamlit as st
 import requests
+import streamlit as st
 
 st.set_page_config(page_title="FraudGuard", layout="centered")
+
 st.title("FraudGuard - Transaction Check")
 st.write("Check if a transaction looks fraudulent.")
 
@@ -17,8 +18,9 @@ if st.button("Check Transaction"):
         "velocity_1h": velocity_1h,
         "amount_vs_avg": amount_vs_avg
     }
+
     try:
-        response = requests.post("https://fraudguard-api.onrender.com/score", json=payload, timeout=30)
+        response = requests.post("https://fraudguard-decision-platform.onrender.com/score", json=payload, timeout=10)
         response.raise_for_status()
         result = response.json()
         score = result.get("fraud_score", 0)
